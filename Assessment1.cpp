@@ -35,11 +35,11 @@ class Sale{
     int saleId;
     Employee*employee;
     Customer*customer;
-    double amount;
+    float amount;
     string date;
     Sale*left;
     Sale*right;
-    Sale(int id,Employee*e,Customer*c,double a,string d){
+    Sale(int id,Employee*e,Customer*c,float a,string d){
         saleId=id;
         employee=e;
         customer=c;
@@ -172,7 +172,7 @@ void addCustomer(Customer*&croot){
 //Add sale and link Employee and customer
 void addSale(Employee*eroot,Customer*croot,Sale*&sroot){
     int saleId,employeeId,customerId;
-    double amount;
+    float amount;
     string date;
     cout<<"\n----Sales Detials----"<<endl;
     cout<<"Enter Sales ID: ";
@@ -180,6 +180,10 @@ void addSale(Employee*eroot,Customer*croot,Sale*&sroot){
     while(searchsale(sroot,saleId)!=NULL){
         cout<<"ID already exists. Enter a different ID: ";
         cin>>saleId;
+        if(cin.fail()){
+            cout<<"Invalid Sales ID.Enter numbers only"<<endl;
+            return;
+        }
     }
     cout<<"Enter Employee ID: ";
     cin>>employeeId;
@@ -239,21 +243,21 @@ Employee*searchemployeebyName(Employee*root,string empName){
     }
 }
 //displays all sales by a particular employee.                                                                                                                                                                                                                                               
-void SalesReport(Sale*root,int employeeId){
+void searchSalesReport(Sale*root,int employeeId){
     if(root==NULL){
         return;
     }
-    SalesReport(root->left,employeeId);
+    searchSalesReport(root->left,employeeId);
     if(root->employee->employeeId==employeeId){
         cout<<"Sale ID: "<<root->saleId;
         cout<<"\nCustomer ID: "<<root->customer->customerId;
         cout<<"\nAmount: "<<root->amount;
         cout<<"\nCustomer Name: "<<root->customer->cusName<<endl;
     }
-    SalesReport(root->right,employeeId);
+    searchSalesReport(root->right,employeeId);
 }
 //calculates employee sales count and total amount
-void employeesummary(Sale*root,int employeeId,int&count,double&totalamount){
+void employeesummary(Sale*root,int employeeId,int&count,float&totalamount){
     if(root==NULL){
         return;
     }
@@ -265,7 +269,7 @@ void employeesummary(Sale*root,int employeeId,int&count,double&totalamount){
     employeesummary(root->right,employeeId,count,totalamount);
 }
 //calculates sales count and amount for a specific employee-customer pair using Inorder traversal.
-void customerummary(Sale*root,int employeeId,int customerId,int&count,double&amount){ 
+void customersalesummary(Sale*root,int employeeId,int customerId,int&count,float&amount){ 
     if(root==NULL){
         return;
     }
@@ -282,14 +286,32 @@ void customergrouping(Customer*root,Sale*sroot,int employeeId){
     }
     customergrouping(root->left,sroot,employeeId);
     int count=0;
-    double amount=0;
-    customersummary(sroot,employeeId,root->customerId,count,amount);
+    float amount=0;
+    customersalesummary(sroot,employeeId,root->customerId,count,amount);
     if(count>0){
         cout<<"\nCustomer Name: "<<root->cusName;
         cout<<"\nNo.Of.Sales: "<<count;
         cout<<"\nTotal Amount: "<<amount<<endl;
     }
     customergrouping(root->right,sroot,employeeId);
+}
+int countEmp(Employee*root){
+    if(root==NULL){
+        return 0;
+    }
+    return 1+countEmp(root->left)+countEmp(root->right);
+}
+int countCust(Customer*root){
+    if(root==NULL){
+        return 0;
+    }
+    return 1+countCust(root->left)+countCust(root->right);
+}
+int countSale(Sale*root){
+    if(root==NULL){
+        return 0;
+    }
+    return 1+countSale(root->left)+countSale(root->right);
 }
 void serializeEmp(Employee*root,ofstream&file){
     if(root==NULL){
@@ -342,13 +364,16 @@ void writefile(Employee*eroot,Customer*croot,Sale*sroot){
         return;
     }
     //Employee
+    int empcount=countEmp(eroot);
+    file.write((char*)&empcount,sizeof(empcount));
     serializeEmp(eroot,file);
-    int index=-1
-    file.write((char*)&eindex,sizeof(index));
     //Customer
+    int custcount=countCust(croot);
+    file.write((char*)&custcount,sizeof(custcount));
     serializeCust(croot,file);
-    file.write((char*)&index,sizeof(index));
     //Sale
+    int salecount=countSale(sroot);
+    file.write((char*)&salecount,sizeof(salecount));
     serializeSale(sroot,file);
     file.close();
     cout<<"Data saved successfully"<<endl;
@@ -362,33 +387,29 @@ void readfile(Employee*&eroot,Customer*&croot,Sale*&sroot){
         cout<<"File Error"<<endl;
         return;
     }
-    while(true){
-        int employeeId;
-        if(!file.read((char*)&employeeId,sizeof(employeeId))
-            break;
-        if(employeeId==-1)
-            break;
-        int len;
+    int countEmp;
+    file.read((char*)&countEmp,sizeof(countEmp));
+    for(int i=0;i<countEmp;i++){
+        int employeeId,len;
+        float salary;
         string empName;
+        file.read((char*)&employeeId,sizeof(employeeId));
         file.read((char*)&len,sizeof(len));
         vector<char>buffer(len+1);
         file.read(buffer.data(),len);
         buffer[len]=0;
         empName=buffer.data();
-        float salary;
         file.read((char*)&salary,sizeof(salary));
         Employee*employee=new Employee(employeeId,empName,salary);
         eroot=insertEmployee(eroot,employee);
     }
-    while(true){
-        int customerId;
-        if(!file.read((char*)&customerId,sizeof(customerId)))
-            break;
-        if(customerId==-1)
-            break;
+    int countCust;
+    file.read((char*)&countCust,sizeof(countCust));
+    for(int i=0;i<countCust;i++){
+        int customerId,len;
+        string address,custName;
+        file.read((char*)&customerId,sizeof(customerId));
         //Customer name
-        int len;
-        string custName,address;
         file.read((char*)&len,sizeof(len));
         vector<char>buffer1(len+1);
         file.read(buffer1.data(),len);
@@ -403,10 +424,12 @@ void readfile(Employee*&eroot,Customer*&croot,Sale*&sroot){
         Customer*customer=new Customer(customerId,custName,address);
         croot=insertCustomer(croot,customer);
     }
-    int saleId,employeeId,customerId,len;
-    double amount;
-    string date;
-    while(file.read((char*)&countSale,sizeof(countSale)));
+    int countSale;
+    file.read((char*)&countSale,sizeof(countSale));
+    for(int i=0;i<countSale;i++) {
+        int saleId,employeeId,customerId,len;
+        float amount;
+        string date;
         file.read((char*)&saleId,sizeof(saleId));
         file.read((char*)&employeeId,sizeof(employeeId));
         file.read((char*)&customerId,sizeof(customerId));
@@ -418,7 +441,6 @@ void readfile(Employee*&eroot,Customer*&croot,Sale*&sroot){
         date=buffer.data();
         Employee*employee=searchemployeebyId(eroot,employeeId);
         Customer*customer=searchcustomer(croot,customerId);
-    if(e!=NULL&&c!=NULL){
         Sale*sale=new Sale(saleId,employee,customer,amount,date);
         sroot=insertSale(sroot,sale);
     }
@@ -460,7 +482,7 @@ int main(){
         cout<<"\n----Sales Detials----"<<endl;
         searchSalesReport(sroot,employee->employeeId);
         int count=0;
-        double totalamount=0;
+        float totalamount=0;
         employeesummary(sroot,employee->employeeId,count,totalamount);
         cout<<"\n----Summary Report----"<<endl;
         cout<<"Total Sales Count: "<<count<<endl;
