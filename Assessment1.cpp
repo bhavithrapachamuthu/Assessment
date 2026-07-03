@@ -377,7 +377,7 @@ void writefile(Employee*eroot,Customer*croot,Sale*sroot){
 /*open the binary file.Then read the stored counts.
 After that read all employee,customer and sales data,recreate the objects and rebuild the tree.
 restore the links between sales,employees and customers and close the file.*/
-void readfile(Employee*eroot,Customer*croot,Sale*sroot){
+void readfile(Employee*&eroot,Customer*&croot,Sale*&sroot){
     ifstream file("data.bin",ios::binary);
     if(!file){
         cout<<"File Error"<<endl;
