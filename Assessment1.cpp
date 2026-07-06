@@ -313,130 +313,234 @@ int countSale(Sale*root){
     }
     return 1+countSale(root->left)+countSale(root->right);
 }
-void serializeEmp(Employee*root,ofstream&file){
+
+void serializeEmp(Employee*root,vector<char>&bytes){
     if(root==NULL){
         return;
     }
-    file.write((char*)&root->employeeId,sizeof(root->employeeId));
+    char*
+    p=(char*)&root->employeeId;
+    for(int i=0;i<sizeof(root->employeeId);i++){
+        bytes.push_back(p[i]);
+    }
     int len=root->empName.length();
-    file.write((char*)&len,sizeof(len));
-    file.write(root->empName.data(),len);
-    file.write((char*)&root->salary,sizeof(root->salary));
-    serializeEmp(root->left,file);
-    serializeEmp(root->right,file);
+    p=(char*)&len;
+    for(int i=0;i<sizeof(len);i++){
+        bytes.push_back(p[i]);
+    }
+    for(int i=0;i<len;i++){
+        bytes.push_back(root->empName[i]);
+    }
+    p=(char*)&root->salary;
+    for(int i=0;i<sizeof(root->salary);i++){
+        bytes.push_back(p[i]);
+    }
+    serializeEmp(root->left,bytes);
+    serializeEmp(root->right,bytes);
 }
-void serializeCust(Customer*root,ofstream&file){
+void serializeCust(Customer*root,vector<char>&bytes){
     if(root==NULL){
         return;
     }
-    file.write((char*)&root->customerId,sizeof(root->customerId));
+    char*
+    p=(char*)&root->customerId;
+    for(int i=0;i<sizeof(root->customerId);i++){
+        bytes.push_back(p[i]);
+    }
     int len=root->cusName.length();
-    file.write((char*)&len,sizeof(len));
-    file.write(root->cusName.data(),len);
+    p=(char*)&len;
+    for(int i=0;i<sizeof(len);i++){
+        bytes.push_back(p[i]);
+    }
+    for(int i=0;i<len;i++){
+        bytes.push_back(root->cusName[i]);
+    }
     len=root->address.length();
-    file.write((char*)&len,sizeof(len));
-    file.write(root->address.data(),len);
-    serializeCust(root->left,file);
-    serializeCust(root->right,file);
+    p=(char*)&len;
+    for(int i=0;i<sizeof(len);i++){
+        bytes.push_back(p[i]);
+    }
+    for(int i=0;i<len;i++){
+        bytes.push_back(root->address[i]);
+    }
+    serializeCust(root->left,bytes);
+    serializeCust(root->right,bytes);
 }
-void serializeSale(Sale*root,ofstream&file){
+void serializeSale(Sale*root,vector<char>&bytes){
     if(root==NULL){
         return;
     }
-    file.write((char*)&root->saleId,sizeof(root->saleId));
-    int empId=root->employee->employeeId;
-    file.write((char*)&empId,sizeof(empId));
-    int cusId=root->customer->customerId;
-    file.write((char*)&cusId,sizeof(cusId));
-    file.write((char*)&root->amount,sizeof(root->amount));
-    int len=root->date.length();
-    file.write((char*)&len,sizeof(len));
-    file.write(root->date.data(),len);
-    serializeSale(root->left,file);
-    serializeSale(root->right,file);
+        char*
+        p=(char*)&root->saleId;
+        for(int i=0;i<sizeof(root->saleId);i++){
+            bytes.push_back(p[i]);
+        }
+        p=(char*)&root->employee->employeeId;
+        for(int i=0;i<sizeof(root->employee->employeeId);i++){
+            bytes.push_back(p[i]);
+        }
+        p=(char*)&root->customer->customerId;
+        for(int i=0;i<sizeof(root->customer->customerId);i++){
+            bytes.push_back(p[i]);
+        }
+        p=(char*)&root->amount;
+        for(int i=0;i<sizeof(root->amount);i++){
+            bytes.push_back(p[i]);
+        }
+        int len=root->date.length();
+        p=(char*)&len;
+        for(int i=0;i<sizeof(len);i++){
+            bytes.push_back(p[i]);
+        }
+        for(int i=0;i<len;i++){
+            bytes.push_back(root->date[i]);
+        }
+        serializeSale(root->left,bytes);
+        serializeSale(root->right,bytes);
+    }
+/*Creates a byte vector to store data
+count total emp and store count as bytes
+serialize all emp records and append them to byte vector
+same logic repeats to customer and sale then return as byte streams*/
+void serialize(Employee*eroot,Customer*croot,Sale*sroot,vector<char>&bytes){
+    int ecount=countEmp(eroot);
+    char* p=(char*)&ecount;
+    for(int i=0;i<sizeof(ecount);i++){
+        bytes.push_back(p[i]);
+    }
+    serializeEmp(eroot,bytes);
+    int ccount=countCust(croot);
+    p=(char*)&ccount;
+    for(int i=0;i<sizeof(ccount);i++){
+        bytes.push_back(p[i]);
+    }
+    serializeCust(croot,bytes);
+    int scount=countSale(sroot);
+    p=(char*)&scount;
+    for(int i=0;i<sizeof(scount);i++){
+        bytes.push_back(p[i]);
+    }
+    serializeSale(sroot,bytes);
 }
 /*open the binary file.Then store employee,customer and sales counts. 
 After that serialize each BST and write all node data into the file.*/
 void writefile(Employee*eroot,Customer*croot,Sale*sroot){
+    vector<char> bytes;
+    serialize(eroot,croot,sroot,bytes);
     ofstream file("data.bin",ios::binary);
     if(!file){
         cout<<"File error";
         return;
     }
-    //Employee
-    int empcount=countEmp(eroot);
-    file.write((char*)&empcount,sizeof(empcount));
-    serializeEmp(eroot,file);
-    //Customer
-    int custcount=countCust(croot);
-    file.write((char*)&custcount,sizeof(custcount));
-    serializeCust(croot,file);
-    //Sale
-    int salecount=countSale(sroot);
-    file.write((char*)&salecount,sizeof(salecount));
-    serializeSale(sroot,file);
+    file.write(bytes.data(),bytes.size());
     file.close();
     cout<<"Data saved successfully"<<endl;
 }
-/*open the binary file.Then read the stored counts.
-After that read all employee,customer and sales data,recreate the objects and rebuild the tree.
-restore the links between sales,employees and customers and close the file.*/
-void readfile(Employee*&eroot,Customer*&croot,Sale*&sroot){
-    ifstream file("data.bin",ios::binary);
-    if(!file){
-        cout<<"File Error"<<endl;
-        return;
-    }
+/*Set a index value for the position in byte array
+reads emp count
+creates emp obj using reconstructed data
+insert emp into emp tree
+repeats logic to cus and sale*/
+void deseralization(vector<char>&bytes,Employee*&eroot,Customer*&croot,Sale*&sroot){
+    int index=0;
     int countEmp;
-    file.read((char*)&countEmp,sizeof(countEmp));
+    char* p=(char*)&countEmp;
+    for(int i=0;i<sizeof(countEmp);i++){
+        p[i]=bytes[index++];
+    }
     for(int i=0;i<countEmp;i++){
         int employeeId,len;
-        float salary;
         string empName;
-        file.read((char*)&employeeId,sizeof(employeeId));
-        file.read((char*)&len,sizeof(len));
+        float salary;
+        p=(char*)&employeeId;
+        for(int j=0;j<sizeof(employeeId);j++){
+            p[j]=bytes[index++];
+        }
+        p=(char*)&len;
+        for(int j=0;j<sizeof(len);j++){
+            p[j]=bytes[index++];
+        }
         vector<char>buffer(len+1);
-        file.read(buffer.data(),len);
+        for(int j=0;j<len;j++){
+            buffer[j]=bytes[index++];
+        }
         buffer[len]=0;
         empName=buffer.data();
-        file.read((char*)&salary,sizeof(salary));
+        p=(char*)&salary;
+        for(int j=0;j<sizeof(salary);j++){
+            p[j]=bytes[index++];
+        }
         Employee*employee=new Employee(employeeId,empName,salary);
         eroot=insertEmployee(eroot,employee);
     }
     int countCust;
-    file.read((char*)&countCust,sizeof(countCust));
+    p=(char*)&countCust;
+    for(int i=0;i<sizeof(countCust);i++){
+        p[i]=bytes[index++];
+    }
     for(int i=0;i<countCust;i++){
         int customerId,len;
-        string address,custName;
-        file.read((char*)&customerId,sizeof(customerId));
-        //Customer name
-        file.read((char*)&len,sizeof(len));
-        vector<char>buffer1(len+1);
-        file.read(buffer1.data(),len);
-        buffer1[len]=0;
-        custName=buffer1.data();
-        //Customer address
-        file.read((char*)&len,sizeof(len));
-        vector<char>buffer2(len+1);
-        file.read(buffer2.data(),len);
-        buffer2[len]=0;
-        address=buffer2.data();
-        Customer*customer=new Customer(customerId,custName,address);
+        string cusName,address;
+        p=(char*)&customerId;
+        for(int j=0;j<sizeof(customerId);j++){
+            p[j]=bytes[index++];
+        }
+        p=(char*)&len;
+        for(int j=0;j<sizeof(len);j++){
+            p[j]=bytes[index++];
+        }
+        vector<char>buffer(len+1);
+        for(int j=0;j<len;j++){
+            buffer[j]=bytes[index++];
+        }
+        buffer[len]=0;
+        cusName=buffer.data();
+        p=(char*)&len;
+        for(int j=0;j<sizeof(len);j++){
+            p[j]=bytes[index++];
+        }
+        buffer.resize(len+1);
+        for(int j=0;j<len;j++){
+            buffer[j]=bytes[index++];
+        }
+        buffer[len]=0;
+        address=buffer.data();
+        Customer*customer=new Customer(customerId,cusName,address);
         croot=insertCustomer(croot,customer);
     }
     int countSale;
-    file.read((char*)&countSale,sizeof(countSale));
-    for(int i=0;i<countSale;i++) {
+    p=(char*)&countSale;
+    for(int i=0;i<sizeof(countSale);i++){   
+        p[i]=bytes[index++];
+    }
+    for(int i=0;i<countSale;i++){
         int saleId,employeeId,customerId,len;
         float amount;
         string date;
-        file.read((char*)&saleId,sizeof(saleId));
-        file.read((char*)&employeeId,sizeof(employeeId));
-        file.read((char*)&customerId,sizeof(customerId));
-        file.read((char*)&amount,sizeof(amount));
-        file.read((char*)&len,sizeof(len));
+        p=(char*)&saleId;
+        for(int j=0;j<sizeof(saleId);j++){
+            p[j]=bytes[index++];
+        }
+        p=(char*)&employeeId;
+        for(int j=0;j<sizeof(employeeId);j++){
+            p[j]=bytes[index++];
+        }
+        p=(char*)&customerId;
+        for(int j=0;j<sizeof(customerId);j++){
+            p[j]=bytes[index++];
+        }
+        p=(char*)&amount;
+        for(int j=0;j<sizeof(amount);j++){
+            p[j]=bytes[index++];
+        }
+        p=(char*)&len;
+        for(int j=0;j<sizeof(len);j++){
+            p[j]=bytes[index++];
+        }
         vector<char>buffer(len+1);
-        file.read(buffer.data(),len);
+        for(int j=0;j<len;j++){
+            buffer[j]=bytes[index++];
+        }
         buffer[len]=0;
         date=buffer.data();
         Employee*employee=searchemployeebyId(eroot,employeeId);
@@ -444,8 +548,24 @@ void readfile(Employee*&eroot,Customer*&croot,Sale*&sroot){
         Sale*sale=new Sale(saleId,employee,customer,amount,date);
         sroot=insertSale(sroot,sale);
     }
+}
+/*create a byte vector to store file data
+read all bytes from the file and store in vector
+deserialize the byte data and rebuild emp,cus and sale tree*/
+void readfile(Employee*&eroot,Customer*&croot,Sale*&sroot){
+    ifstream file("data.bin",ios::binary);
+    if(!file){
+        cout<<"File error";
+        return;
+    }
+    vector<char> bytes;
+    char c;
+    while(file.get(c)){
+        bytes.push_back(c);
+    }
+    deseralization(bytes,eroot,croot,sroot);
     file.close();
-    cout<<"Data Loaded successfully"<<endl;
+    cout<<"Data loaded successfully"<<endl;
 }
 int main(){
     Employee*eroot=NULL;
