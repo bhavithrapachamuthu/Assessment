@@ -180,42 +180,51 @@ void addSale(Employee*eroot,Customer*croot,Sale*&sroot){
     while(searchsale(sroot,saleId)!=NULL){
         cout<<"ID already exists. Enter a different ID: ";
         cin>>saleId;
-        if(cin.fail()){
-            cout<<"Invalid Sales ID.Enter numbers only"<<endl;
-            return;
-        }
     }
-    cout<<"Enter Employee ID: ";
-    cin>>employeeId;
-    Employee*e=eroot;
-    while(e!=NULL)
-    {
-        if(employeeId==e->employeeId){
+    Employee*e;
+    while(true){
+        cout<<"Enter Employee ID: ";
+        cin>>employeeId;
+        e=eroot;
+        while(e!=NULL){
+            if(employeeId==e->employeeId){
+                break;
+            }
+            else if(employeeId < e->employeeId){
+                e=e->left;
+            }
+            else
+            e=e->right;
+        }
+        if(e==NULL){
+            cout<<"Employee not found.Enter a valid ID."<<endl;
+        }
+        else{
             break;
         }
-        else if(employeeId < e->employeeId){
-            e=e->left;
-        }
-        else
-        e=e->right;
     }
-    cout<<"Enter Customer ID: ";
-    cin>>customerId;
-    Customer*c=croot;
-    while(c!=NULL)
-    { 
-        if(customerId==c->customerId){
-        break;
+    Customer*c;
+    while(true){
+        cout<<"Enter Customer ID: ";
+        cin>>customerId;
+        c=croot;
+        while(c!=NULL)
+        { 
+            if(customerId==c->customerId){
+            break;
+            }
+            else if(customerId < c->customerId){
+                c=c->left;
+            }
+            else
+            c=c->right;
         }
-        else if(customerId < c->customerId){
-            c=c->left;
+        if(c==NULL){
+            cout<<"Customer not found.Enter a valid ID."<<endl;
         }
-        else
-        c=c->right;
-    }
-    if(e==NULL||c==NULL) {
-        cout<<"Employee or Customer not found"<<endl;
-        return;
+        else{
+            break;
+        }
     }
     cout<<"Enter amount: ";
     cin>>amount;
