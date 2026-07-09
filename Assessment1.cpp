@@ -3,32 +3,18 @@ using namespace std;
 class Employee{
     public:
     int employeeId;
-    string empName;
+    char empName[50];
     float salary;
     Employee*left;
     Employee*right;
-    Employee(int id,string n,float s){
-        employeeId=id;
-        empName=n;
-        salary=s;
-        left=NULL;
-        right=NULL;
-    }
 };
 class Customer{
     public:
     int customerId;
-    string cusName;
-    string address;
+    char cusName[50];
+    char address[100];
     Customer*left;
     Customer*right;
-    Customer(int id,string n,string a){
-        customerId=id;
-        cusName=n;
-        address=a;
-        left=NULL;
-        right=NULL;
-    }
 };
 class Sale{
     public:
@@ -36,18 +22,9 @@ class Sale{
     Employee*employee;
     Customer*customer;
     float amount;
-    string date;
+    char date[11];
     Sale*left;
     Sale*right;
-    Sale(int id,Employee*e,Customer*c,float a,string d){
-        saleId=id;
-        employee=e;
-        customer=c;
-        amount=a;
-        date=d;
-        left=NULL;
-        right=NULL;
-    }
 };
 //Insert employee into BST using EmpId
 Employee*insertEmployee(Employee*root,Employee*newEmployee){
@@ -132,7 +109,7 @@ Sale*searchsale(Sale*root,int saleId){
 }
 void addEmployee(Employee*&eroot){
     int id;
-    string name;
+    char name[50];
     float salary;
     cout<<"\n----Employee Detials----"<<endl;
     cout<<"Enter Employee ID: ";
@@ -143,16 +120,26 @@ void addEmployee(Employee*&eroot){
     }
     cout<<"Enter Name: ";
     cin.ignore();
-    getline(cin,name);
+    cin.getline(name,50);
     cout<<"Enter salary: ";
     cin>>salary;
-    Employee*newemployee=new Employee(id,name,salary);
-    eroot=insertEmployee(eroot,newemployee);
+    Employee*e=new Employee;
+    e->employeeId=id;
+    e->salary=salary;
+    for(int i=0;name[i]!=0;i++){
+        e->empName[i]=name[i];
+        if(name[i]==0){
+            break;
+        }
+    }
+    e->left=NULL;
+    e->right=NULL;
+    eroot=insertEmployee(eroot,e);
     cout<<"Employee added successfully"<<endl;
 }
 void addCustomer(Customer*&croot){
     int id;
-    string name,address;
+    char name[50],address[100];
     cout<<"\n----Customer Detials----"<<endl;
     cout<<"Enter Customer ID: ";
     cin>>id;
@@ -162,18 +149,33 @@ void addCustomer(Customer*&croot){
     }
     cout<<"Enter Name: ";
     cin.ignore();
-    getline(cin,name);
+    cin.getline(name,50);
     cout<<"Enter Address: ";
-    getline(cin,address);
-    Customer*newcustomer=new Customer(id,name,address);
-    croot=insertCustomer(croot,newcustomer);
+    cin.getline(address,100);
+    Customer*c=new Customer;
+    c->customerId=id;
+    for(int i=0;name[i]!=0;i++){
+        c->cusName[i]=name[i];
+        if(name[i]==0){
+            break;
+        }
+    }
+    for(int i=0;address[i]!=0;i++){
+        c->address[i]=address[i];
+        if(address[i]==0){
+            break;
+        }
+    }
+    c->left=NULL;
+    c->right=NULL;
+    croot=insertCustomer(croot,c);
     cout<<"Customer added successfully"<<endl;
 }
 //Add sale and link Employee and customer
 void addSale(Employee*eroot,Customer*croot,Sale*&sroot){
     int saleId,employeeId,customerId;
     float amount;
-    string date;
+    char date[10];
     cout<<"\n----Sales Detials----"<<endl;
     cout<<"Enter Sales ID: ";
     cin>>saleId;
@@ -230,16 +232,37 @@ void addSale(Employee*eroot,Customer*croot,Sale*&sroot){
     cin>>amount;
     cout<<"Enter date: ";
     cin.ignore();
-    getline(cin,date);
-    Sale*newsale=new Sale(saleId,e,c,amount,date);
-    sroot=insertSale(sroot,newsale);
+    cin.getline(date,10);
+    Sale*s=new Sale;
+    s->saleId=saleId;
+    s->employee=e;
+    s->customer=c;
+    s->amount=amount;
+    for(int i=0;date[i]!=0;i++){
+        s->date[i]=date[i];
+        if(date[i]==0){
+            break;
+        }
+    }
+    s->left=NULL;
+    s->right=NULL;
+    sroot=insertSale(sroot,s);
     cout<<"Sales added successfully"<<endl;
 }
-Employee*searchemployeebyName(Employee*root,string empName){
+Employee*searchemployeebyName(Employee*root,char empName[]){
     if(root==NULL){
         return NULL;
     }
-    if(root->empName==empName){
+    int found=1;
+    int i=0;
+    while(root->empName[i]!=0 && empName[i]!=0){
+        if(root->empName[i]!=empName[i]){
+            found=0;
+            break;
+        }
+        i++;
+    }
+    if(found==1){
         return root;
     }
     Employee*left=searchemployeebyName(root->left,empName);
@@ -332,7 +355,10 @@ void serializeEmp(Employee*root,vector<char>&bytes){
     for(int i=0;i<sizeof(root->employeeId);i++){
         bytes.push_back(p[i]);
     }
-    int len=root->empName.length();
+    int len=0;
+    while(root->empName[len]!=0){
+        len++;
+    }
     p=(char*)&len;
     for(int i=0;i<sizeof(len);i++){
         bytes.push_back(p[i]);
@@ -356,7 +382,10 @@ void serializeCust(Customer*root,vector<char>&bytes){
     for(int i=0;i<sizeof(root->customerId);i++){
         bytes.push_back(p[i]);
     }
-    int len=root->cusName.length();
+    int len=0;
+    while(root->cusName[len]!=0){
+        len++;
+    }
     p=(char*)&len;
     for(int i=0;i<sizeof(len);i++){
         bytes.push_back(p[i]);
@@ -364,7 +393,10 @@ void serializeCust(Customer*root,vector<char>&bytes){
     for(int i=0;i<len;i++){
         bytes.push_back(root->cusName[i]);
     }
-    len=root->address.length();
+    len=0;
+    while(root->address[len]!=0){
+        len++;
+    }
     p=(char*)&len;
     for(int i=0;i<sizeof(len);i++){
         bytes.push_back(p[i]);
@@ -396,7 +428,10 @@ void serializeSale(Sale*root,vector<char>&bytes){
         for(int i=0;i<sizeof(root->amount);i++){
             bytes.push_back(p[i]);
         }
-        int len=root->date.length();
+        int len=0;
+        while(root->date[len]!=0){
+            len++;
+        }
         p=(char*)&len;
         for(int i=0;i<sizeof(len);i++){
             bytes.push_back(p[i]);
@@ -436,13 +471,13 @@ After that serialize each BST and write all node data into the file.*/
 void writefile(Employee*eroot,Customer*croot,Sale*sroot){
     vector<char> bytes;
     serialize(eroot,croot,sroot,bytes);
-    ofstream file("data.bin",ios::binary);
-    if(!file){
+    FILE*f=fopen("data.bin","wb");
+    if(!f){
         cout<<"File error";
         return;
     }
-    file.write(bytes.data(),bytes.size());
-    file.close();
+    fwrite(bytes.data(),sizeof(char),bytes.size(),f);
+    fclose(f);
     cout<<"Data saved successfully"<<endl;
 }
 /*Set a index value for the position in byte array
@@ -452,36 +487,39 @@ insert emp into emp tree
 repeats logic to cus and sale*/
 void deseralization(vector<char>&bytes,Employee*&eroot,Customer*&croot,Sale*&sroot){
     int index=0;
+    //Employee
     int countEmp;
     char* p=(char*)&countEmp;
     for(int i=0;i<sizeof(countEmp);i++){
-        p[i]=bytes[index++];
+        p[i]=bytes[index++];//Outer loop, reading each record
     }
     for(int i=0;i<countEmp;i++){
         int employeeId,len;
-        string empName;
         float salary;
+        Employee*e=new Employee;
         p=(char*)&employeeId;
-        for(int j=0;j<sizeof(employeeId);j++){
-            p[j]=bytes[index++];
+        for(int j=0;j<sizeof(employeeId);j++){ //inner loop, reading each bytes of a reacord
+            p[j]=bytes[index++];//to move next byte
         }
+        e->employeeId=employeeId;
         p=(char*)&len;
         for(int j=0;j<sizeof(len);j++){
             p[j]=bytes[index++];
         }
-        vector<char>buffer(len+1);
         for(int j=0;j<len;j++){
-            buffer[j]=bytes[index++];
+            e->empName[j]=bytes[index++];
         }
-        buffer[len]=0;
-        empName=buffer.data();
+        e->empName[len]=0;
         p=(char*)&salary;
         for(int j=0;j<sizeof(salary);j++){
             p[j]=bytes[index++];
         }
-        Employee*employee=new Employee(employeeId,empName,salary);
-        eroot=insertEmployee(eroot,employee);
+        e->salary=salary;
+        e->left=NULL;
+        e->right=NULL;
+        eroot=insertEmployee(eroot,e);
     }
+    //Customer
     int countCust;
     p=(char*)&countCust;
     for(int i=0;i<sizeof(countCust);i++){
@@ -489,34 +527,36 @@ void deseralization(vector<char>&bytes,Employee*&eroot,Customer*&croot,Sale*&sro
     }
     for(int i=0;i<countCust;i++){
         int customerId,len;
-        string cusName,address;
+        Customer*c=new Customer;
+        //Cus Id
         p=(char*)&customerId;
         for(int j=0;j<sizeof(customerId);j++){
             p[j]=bytes[index++];
         }
+        c->customerId=customerId;
+        //Cus Name
         p=(char*)&len;
         for(int j=0;j<sizeof(len);j++){
             p[j]=bytes[index++];
         }
-        vector<char>buffer(len+1);
         for(int j=0;j<len;j++){
-            buffer[j]=bytes[index++];
+            c->cusName[j]=bytes[index++];
         }
-        buffer[len]=0;
-        cusName=buffer.data();
+        c->cusName[len]=0;
+        //Address
         p=(char*)&len;
         for(int j=0;j<sizeof(len);j++){
             p[j]=bytes[index++];
         }
-        buffer.resize(len+1);
         for(int j=0;j<len;j++){
-            buffer[j]=bytes[index++];
+            c->address[j]=bytes[index++];
         }
-        buffer[len]=0;
-        address=buffer.data();
-        Customer*customer=new Customer(customerId,cusName,address);
-        croot=insertCustomer(croot,customer);
+        c->address[len]=0;
+        c->left=NULL;
+        c->right=NULL;
+        croot=insertCustomer(croot,c);
     }
+    //Sale
     int countSale;
     p=(char*)&countSale;
     for(int i=0;i<sizeof(countSale);i++){   
@@ -525,7 +565,7 @@ void deseralization(vector<char>&bytes,Employee*&eroot,Customer*&croot,Sale*&sro
     for(int i=0;i<countSale;i++){
         int saleId,employeeId,customerId,len;
         float amount;
-        string date;
+        char date[11];
         p=(char*)&saleId;
         for(int j=0;j<sizeof(saleId);j++){
             p[j]=bytes[index++];
@@ -546,35 +586,67 @@ void deseralization(vector<char>&bytes,Employee*&eroot,Customer*&croot,Sale*&sro
         for(int j=0;j<sizeof(len);j++){
             p[j]=bytes[index++];
         }
-        vector<char>buffer(len+1);
         for(int j=0;j<len;j++){
-            buffer[j]=bytes[index++];
+            date[j]=bytes[index++];
         }
-        buffer[len]=0;
-        date=buffer.data();
+        date[len]=0;
         Employee*employee=searchemployeebyId(eroot,employeeId);
         Customer*customer=searchcustomer(croot,customerId);
-        Sale*sale=new Sale(saleId,employee,customer,amount,date);
-        sroot=insertSale(sroot,sale);
+        Sale*s=new Sale;
+        s->saleId=saleId;
+        s->employee=employee;
+        s->customer=customer;
+        s->amount=amount;
+        for(int j=0;j<len;j++){
+            s->date[j]=date[j];
+        }
+        s->date[0]=0;
+        s->left=NULL;
+        s->right=NULL;
+        sroot=insertSale(sroot,s);
     }
 }
 /*create a byte vector to store file data
 read all bytes from the file and store in vector
 deserialize the byte data and rebuild emp,cus and sale tree*/
 void readfile(Employee*&eroot,Customer*&croot,Sale*&sroot){
-    ifstream file("data.bin",ios::binary);
-    if(!file){
+    FILE*f=fopen("data.bin","rb");
+    if(!f){
         cout<<"File error";
         return;
     }
     vector<char> bytes;
     char c;
-    while(file.get(c)){
+    while(fread(&c,1,1,f)){
         bytes.push_back(c);
     }
     deseralization(bytes,eroot,croot,sroot);
-    file.close();
-    cout<<"Data loaded successfully"<<endl;
+    fclose(f);
+    cout<<"Data loaded successfully"<<endl; 
+}
+void deleteEmp(Employee*root){
+    if(root==NULL){
+        return;
+    }
+    deleteEmp(root->left);
+    deleteEmp(root->right);
+    delete root;
+}
+void deleteCus(Customer*root){
+    if(root==NULL){
+        return;
+    }
+    deleteCus(root->left);
+    deleteCus(root->right);
+    delete root;
+}
+void deleteSale(Sale*root){
+    if(root==NULL){
+        return;
+    }
+    deleteSale(root->left);
+    deleteSale(root->right);
+    delete root;
 }
 int main(){
     Employee*eroot=NULL;
@@ -599,9 +671,10 @@ int main(){
     }
     char choice;
     do{
-    string empName;
+    char empName[50];
     cout<<"\nEnter Employee Name to search: ";
-    getline(cin>>ws,empName);
+    cin.ignore();
+    cin.getline(empName,50);
     Employee*employee=searchemployeebyName(eroot,empName);
     if(employee!=NULL){
         cout<<"----Employee Report----"<<endl;
@@ -626,5 +699,8 @@ int main(){
     cin>>choice;
 }while(choice=='y'||choice=='Y');
     writefile(eroot,croot,sroot);
+    deleteEmp(eroot);
+    deleteCus(croot);
+    deleteSale(sroot);
     return 0;
 }
