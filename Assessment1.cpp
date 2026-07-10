@@ -1,4 +1,5 @@
-#include<bits/stdc++.h>
+#include<iostream>
+#include<vector>
 using namespace std;
 class Employee{
     public:
@@ -22,7 +23,7 @@ class Sale{
     Employee*employee;
     Customer*customer;
     float amount;
-    char date[11];
+    char date[15];
     Sale*left;
     Sale*right;
 };
@@ -115,7 +116,7 @@ void addEmployee(Employee*&eroot){
     cout<<"Enter Employee ID: ";
     cin>>id;
     while(searchemployeebyId(eroot,id)!=NULL){
-        cout<<"ID already exists. Enter a different ID: ";
+        cout<<"ID already exists.Enter different Id: ";
         cin>>id;
     }
     cout<<"Enter Name: ";
@@ -126,12 +127,11 @@ void addEmployee(Employee*&eroot){
     Employee*e=new Employee;
     e->employeeId=id;
     e->salary=salary;
-    for(int i=0;name[i]!=0;i++){
+    int i=0;
+    for(i=0;name[i]!=0;i++){
         e->empName[i]=name[i];
-        if(name[i]==0){
-            break;
-        }
     }
+    e->empName[i]=0;
     e->left=NULL;
     e->right=NULL;
     eroot=insertEmployee(eroot,e);
@@ -144,7 +144,7 @@ void addCustomer(Customer*&croot){
     cout<<"Enter Customer ID: ";
     cin>>id;
     while(searchcustomer(croot,id)!=NULL){
-        cout<<"ID already exists. Enter a different ID: ";
+        cout<<"ID already exists.Enter different Id: ";
         cin>>id;
     }
     cout<<"Enter Name: ";
@@ -154,18 +154,16 @@ void addCustomer(Customer*&croot){
     cin.getline(address,100);
     Customer*c=new Customer;
     c->customerId=id;
-    for(int i=0;name[i]!=0;i++){
+    int i=0;
+    for(i=0;name[i]!=0;i++){
         c->cusName[i]=name[i];
-        if(name[i]==0){
-            break;
-        }
     }
-    for(int i=0;address[i]!=0;i++){
-        c->address[i]=address[i];
-        if(address[i]==0){
-            break;
+    c->cusName[i]=0;
+    int j=0;
+    for(int j=0;address[j]!=0;j++){
+        c->address[j]=address[j];
         }
-    }
+        c->address[i]=0;
     c->left=NULL;
     c->right=NULL;
     croot=insertCustomer(croot,c);
@@ -175,7 +173,7 @@ void addCustomer(Customer*&croot){
 void addSale(Employee*eroot,Customer*croot,Sale*&sroot){
     int saleId,employeeId,customerId;
     float amount;
-    char date[10];
+    char date[15];
     cout<<"\n----Sales Detials----"<<endl;
     cout<<"Enter Sales ID: ";
     cin>>saleId;
@@ -238,12 +236,11 @@ void addSale(Employee*eroot,Customer*croot,Sale*&sroot){
     s->employee=e;
     s->customer=c;
     s->amount=amount;
-    for(int i=0;date[i]!=0;i++){
+    int i=0;
+    for(i=0;date[i]!=0;i++){
         s->date[i]=date[i];
-        if(date[i]==0){
-            break;
-        }
     }
+    s->date[i]=0;
     s->left=NULL;
     s->right=NULL;
     sroot=insertSale(sroot,s);
@@ -262,7 +259,7 @@ Employee*searchemployeebyName(Employee*root,char empName[]){
         }
         i++;
     }
-    if(found==1){
+    if(found==1 && root->empName[i]==0 && empName[i]==0){
         return root;
     }
     Employee*left=searchemployeebyName(root->left,empName);
@@ -600,7 +597,7 @@ void deseralization(vector<char>&bytes,Employee*&eroot,Customer*&croot,Sale*&sro
         for(int j=0;j<len;j++){
             s->date[j]=date[j];
         }
-        s->date[0]=0;
+        s->date[len]=0;
         s->left=NULL;
         s->right=NULL;
         sroot=insertSale(sroot,s);
@@ -673,7 +670,7 @@ int main(){
     do{
     char empName[50];
     cout<<"\nEnter Employee Name to search: ";
-    cin.ignore();
+    cin>>ws;
     cin.getline(empName,50);
     Employee*employee=searchemployeebyName(eroot,empName);
     if(employee!=NULL){
