@@ -115,8 +115,15 @@ void addEmployee(Employee*&eroot){
     cout<<"\n----Employee Detials----"<<endl;
     cout<<"Enter Employee ID: ";
     cin>>id;
-    while(searchemployeebyId(eroot,id)!=NULL){
+    while(cin.fail() || searchemployeebyId(eroot,id)!=NULL){
+        if(cin.fail()){
+            cout<<"Invalid ID.Enter Numbers only: ";
+            cin.clear();
+            cin.ignore(50,'\n');
+        }
+        else{
         cout<<"ID already exists.Enter different Id: ";
+        }
         cin>>id;
     }
     cout<<"Enter Name: ";
@@ -127,6 +134,12 @@ void addEmployee(Employee*&eroot){
     Employee*e=new Employee;
     e->employeeId=id;
     e->salary=salary;
+    while(cin.fail()){
+        cout<<"Enter only numbers: ";
+        cin.clear();
+        cin.ignore(100000,'\n');
+        cin>>salary;
+    }
     int i=0;
     for(i=0;name[i]!=0;i++){
         e->empName[i]=name[i];
@@ -143,8 +156,15 @@ void addCustomer(Customer*&croot){
     cout<<"\n----Customer Detials----"<<endl;
     cout<<"Enter Customer ID: ";
     cin>>id;
-    while(searchcustomer(croot,id)!=NULL){
+    while(cin.fail() || searchcustomer(croot,id)!=NULL){
+        if(cin.fail()){
+            cout<<"Invalid ID.Enter Numbers only: ";
+            cin.clear();
+            cin.ignore(50,'\n');
+        }
+        else{
         cout<<"ID already exists.Enter different Id: ";
+        }
         cin>>id;
     }
     cout<<"Enter Name: ";
@@ -160,10 +180,10 @@ void addCustomer(Customer*&croot){
     }
     c->cusName[i]=0;
     int j=0;
-    for(int j=0;address[j]!=0;j++){
+    for(j=0;address[j]!=0;j++){
         c->address[j]=address[j];
         }
-        c->address[i]=0;
+    c->address[j]=0;
     c->left=NULL;
     c->right=NULL;
     croot=insertCustomer(croot,c);
@@ -177,25 +197,28 @@ void addSale(Employee*eroot,Customer*croot,Sale*&sroot){
     cout<<"\n----Sales Detials----"<<endl;
     cout<<"Enter Sales ID: ";
     cin>>saleId;
-    while(searchsale(sroot,saleId)!=NULL){
-        cout<<"ID already exists. Enter a different ID: ";
+    while(cin.fail() || searchsale(sroot,saleId)!=NULL){
+        if(cin.fail()){
+            cout<<"Invalid ID.Enter Numbers only: ";
+            cin.clear();
+            cin.ignore(50,'\n');
+        }
+        else{
+        cout<<"ID already exists.Enter different Id: ";
+        }
         cin>>saleId;
     }
     Employee*e;
     while(true){
         cout<<"Enter Employee ID: ";
         cin>>employeeId;
-        e=eroot;
-        while(e!=NULL){
-            if(employeeId==e->employeeId){
-                break;
-            }
-            else if(employeeId < e->employeeId){
-                e=e->left;
-            }
-            else
-            e=e->right;
+        while(cin.fail()){
+            cout<<"Invalid ID.Enter Numbers only: ";
+            cin.clear();
+            cin.ignore(50,'\n');
+            cin>>employeeId;
         }
+        e=searchemployeebyId(eroot,employeeId);
         if(e==NULL){
             cout<<"Employee not found.Enter a valid ID."<<endl;
         }
@@ -203,24 +226,19 @@ void addSale(Employee*eroot,Customer*croot,Sale*&sroot){
             break;
         }
     }
-    Customer*c;
+    Customer*c=NULL;
     while(true){
         cout<<"Enter Customer ID: ";
         cin>>customerId;
-        c=croot;
-        while(c!=NULL)
-        { 
-            if(customerId==c->customerId){
-            break;
-            }
-            else if(customerId < c->customerId){
-                c=c->left;
-            }
-            else
-            c=c->right;
+        while(cin.fail()){
+            cout<<"Invalid ID.Enter Numbers only: ";
+            cin.clear();
+            cin.ignore(50,'\n');
+            cin>>customerId;
         }
-        if(c==NULL){
-            cout<<"Customer not found.Enter a valid ID."<<endl;
+        c=searchcustomer(croot,customerId);
+        if(e==NULL){
+            cout<<"Customer not found.Enter a valid ID."<<endl; 
         }
         else{
             break;
@@ -228,9 +246,15 @@ void addSale(Employee*eroot,Customer*croot,Sale*&sroot){
     }
     cout<<"Enter amount: ";
     cin>>amount;
+    while(cin.fail()){
+        cout<<"Enter only numbers: ";
+        cin.clear();
+        cin.ignore(100000,'\n');
+        cin>>amount;
+    }
     cout<<"Enter date: ";
     cin.ignore();
-    cin.getline(date,10);
+    cin.getline(date,15);
     Sale*s=new Sale;
     s->saleId=saleId;
     s->employee=e;
@@ -653,16 +677,34 @@ int main(){
     int n;
     cout<<"Enter no.of Employees: ";
     cin>>n;
+    while(cin.fail()){
+        cout<<"Enter only numbers: ";
+        cin.clear();
+        cin.ignore(1000,'\n');
+        cin>>n;
+    }
     for(int i=0;i<n;i++){
         addEmployee(eroot);
     }
     cout<<"\nEnter no.of Cutomers: ";
     cin>>n;
+    while(cin.fail()){
+        cout<<"Enter only numbers: ";
+        cin.clear();
+        cin.ignore(1000,'\n');
+        cin>>n;
+    }
     for(int i=0;i<n;i++){
         addCustomer(croot);
     }
     cout<<"\nEnter no.of Sales: ";
     cin>>n;
+    while(cin.fail()){
+        cout<<"Enter only numbers: ";
+        cin.clear();
+        cin.ignore(1000,'\n');
+        cin>>n;
+    }
     for(int i=0;i<n;i++){
         addSale(eroot,croot,sroot);
     }
