@@ -226,7 +226,7 @@ void addSale(Employee*eroot,Customer*croot,Sale*&sroot){
             break;
         }
     }
-    Customer*c=NULL;
+    Customer*c;
     while(true){
         cout<<"Enter Customer ID: ";
         cin>>customerId;
@@ -237,7 +237,7 @@ void addSale(Employee*eroot,Customer*croot,Sale*&sroot){
             cin>>customerId;
         }
         c=searchcustomer(croot,customerId);
-        if(e==NULL){
+        if(c==NULL){
             cout<<"Customer not found.Enter a valid ID."<<endl; 
         }
         else{
