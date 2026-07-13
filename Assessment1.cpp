@@ -438,12 +438,10 @@ void serializeSale(Sale*root,vector<char>&bytes){
     if(root==NULL){
         return;
     }
-        char*
-        p=(char*)&root->saleId;
+        char*p=(char*)&root->saleId;
         for(int i=0;i<sizeof(root->saleId);i++){
             bytes.push_back(p[i]);
         }
-    if(root->employee!=NULL && root->customer!=NULL){
         p=(char*)&root->employee->employeeId;
         for(int i=0;i<sizeof(root->employee->employeeId);i++){
             bytes.push_back(p[i]);
@@ -470,7 +468,6 @@ void serializeSale(Sale*root,vector<char>&bytes){
         serializeSale(root->left,bytes);
         serializeSale(root->right,bytes);
     }
-}
 /*Creates a byte vector to store data
 count total emp and store count as bytes
 serialize all emp records and append them to byte vector
@@ -594,7 +591,7 @@ void deseralization(vector<char>&bytes,Employee*&eroot,Customer*&croot,Sale*&sro
     for(int i=0;i<countSale;i++){
         int saleId,employeeId,customerId,len;
         float amount;
-        char date[11];
+        char date[15];
         p=(char*)&saleId;
         for(int j=0;j<sizeof(saleId);j++){
             p[j]=bytes[index++];
