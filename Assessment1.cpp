@@ -301,11 +301,13 @@ void searchSalesReport(Sale*root,int employeeId){
         return;
     }
     searchSalesReport(root->left,employeeId);
+    if(root->employee!=NULL){
     if(root->employee->employeeId==employeeId){
         cout<<"Sale ID: "<<root->saleId;
         cout<<"\nCustomer ID: "<<root->customer->customerId;
         cout<<"\nAmount: "<<root->amount;
         cout<<"\nCustomer Name: "<<root->customer->cusName<<endl;
+    }
     }
     searchSalesReport(root->right,employeeId);
 }
@@ -315,9 +317,11 @@ void employeesummary(Sale*root,int employeeId,int&count,float&totalamount){
         return;
     }
     employeesummary(root->left,employeeId,count,totalamount);
+    if(root->employee!=NULL){
         if(root->employee->employeeId==employeeId){
             count++;
             totalamount+=root->amount;
+    }
     }
     employeesummary(root->right,employeeId,count,totalamount);
 }
@@ -327,9 +331,11 @@ void customersalesummary(Sale*root,int employeeId,int customerId,int&count,float
         return;
     }
     customersalesummary(root->left,employeeId,customerId,count,amount); 
+    if(root->employee!=NULL &&root->customer!=NULL){
     if(root->employee->employeeId==employeeId && root->customer->customerId==customerId){
         count++; 
         amount+=root->amount;
+    }
     }
     customersalesummary(root->right,employeeId,customerId,count,amount);
 }
@@ -437,6 +443,7 @@ void serializeSale(Sale*root,vector<char>&bytes){
         for(int i=0;i<sizeof(root->saleId);i++){
             bytes.push_back(p[i]);
         }
+    if(root->employee!=NULL && root->customer!=NULL){
         p=(char*)&root->employee->employeeId;
         for(int i=0;i<sizeof(root->employee->employeeId);i++){
             bytes.push_back(p[i]);
@@ -463,6 +470,7 @@ void serializeSale(Sale*root,vector<char>&bytes){
         serializeSale(root->left,bytes);
         serializeSale(root->right,bytes);
     }
+}
 /*Creates a byte vector to store data
 count total emp and store count as bytes
 serialize all emp records and append them to byte vector
