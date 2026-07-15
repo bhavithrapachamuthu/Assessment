@@ -759,7 +759,7 @@ Sale*deleteSale(Sale*root,int id){
                 temp=root->right;
             }
             delete root;
-            return NULL;
+            return temp;
         }
         //two child
         else{
@@ -768,10 +768,11 @@ Sale*deleteSale(Sale*root,int id){
                 temp=temp->left;
             }
             root->saleId=temp->saleId;
-            root->employee=root->employee;
-            root->customer=root->customer;
+            root->employee=temp->employee;
+            root->customer=temp->customer;
+            root->amount=temp->amount;
             int i;
-            for(int i=0;temp->date[i]=0;i++){
+            for(i=0;temp->date[i]!=0;i++){
                 root->date[i]=temp->date[i];
             }
             root->date[i]=0;
