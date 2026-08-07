@@ -117,122 +117,90 @@ int validation(){
     return id;
 }
 void addEmp(Employee*&eroot){
-    int id;char name[50];float salary;
     cout<<"\n---Employee Details---"<<endl;
+    Employee*e=new Employee;
     cout<<"Enter Employee Id: ";
-    id=validation();
-    while(searchbyId(eroot,id)!=NULL){
+    e->empId=validation();
+    while(searchbyId(eroot,e->empId)!=NULL){
         cout<<"Id already exits.Enter different Id: ";
-        id=validation();
+        e->empId=validation();
     }
     cout<<"Enter Name: ";
     cin.ignore();
-    cin.getline(name,50);
+    cin.getline(e->empName,50);
     cout<<"Enter Salary: ";
-    cin>>salary;
+    cin>>e->salary;
     //validations
     while(cin.fail()){
         cout<<"Enter only numbers: ";
         cin.clear();
         cin.ignore(500000,'\n');
-        cin>>salary;
+        cin>>e->salary;
     }
-    Employee*e=new Employee;
-    e->empId=id;
-    e->salary=salary;
-    int i=0;//copy names
-    while(name[i]!=0){
-        e->empName[i]=name[i];
-        i++;
-    }
-    e->empName[i]=0;
     e->left=NULL;
     e->right=NULL;
     eroot=insertEmployee(eroot,e);
     cout<<"Employee added successfully"<<endl;
 }
 void addcus(Customer*&croot){
-    int id;char name[50],address[100];
     cout<<"\n---Customer Details---"<<endl;
+    Customer*c=new Customer;
     cout<<"Enter Customer Id: ";
-    id=validation();
-    while(searchcus(croot,id)!=NULL){
+    c->cusId=validation();
+    while(searchcus(croot,c->cusId)!=NULL){
     cout<<"Id already exits.Enter different Id: ";
-    id=validation();
+    c->cusId=validation();
     }
     cout<<"Enter Name: ";
     cin.ignore();
-    cin.getline(name,50);
+    cin.getline(c->cusName,50);
     cout<<"Enter Address: ";
-    cin.getline(address,100);
-    Customer*c=new Customer;
-    c->cusId=id;
-    int i=0;
-    while(name[i]!=0){
-        c->cusName[i]=name[i];
-        i++;
-    }
-    c->cusName[i]=0;
-    while(address[i]!=0){
-        c->address[i]=address[i];
-        i++;
-    }
-    c->address[i]=0;
+    cin.getline(c->address,100);
     c->left=NULL;
     c->right=NULL;
     croot=insertCustomer(croot,c);
     cout<<"Customer added succesfully"<<endl;
 }
 void addSale(Sale*&sroot,Employee*eroot,Customer*croot){
-    int sId,eId,cId; float amount; char date[50];
+    int empId,cusId;
     cout<<"\n---Sale Details---"<<endl;
+    Sale*s=new Sale;
     cout<<"Enter Sale Id: ";
-    sId=validation();
-    while(searchsale(sroot,sId)!=NULL){
+    s->saleId=validation();
+    while(searchsale(sroot,s->saleId)!=NULL){
         cout<<"Id already exits.Enter different Id: ";
-        sId=validation();
+        s->saleId=validation();
     }
     cout<<"Enter Employee Id: ";
-    eId=validation();
-    while(searchbyId(eroot,eId)==NULL){
+    empId=validation();
+    while(searchbyId(eroot,empId)==NULL){
         cout<<"Employee not Found.Enter valid Id: ";
-        eId=validation();
+        empId=validation();
     }
     cout<<"Enter Customer Id: ";
-    cId=validation();
-    while(searchcus(croot,cId)==NULL){
+    cusId=validation();
+    while(searchcus(croot,cusId)==NULL){
         cout<<"Customer not Found.Enter valid Id: ";
-        cId=validation();
+        cusId=validation();
     }
     cout<<"Enter amount: ";
-    cin>>amount;
+    cin>>s->amount;
     while(cin.fail()){
         cout<<"Enter only digits";
         cin.clear();
         cin.ignore(10000,'\n');
-        cin>>amount;
+        cin>>s->amount;
     }
     cout<<"Enter Date: ";
     cin.ignore();
-    cin.getline(date,20);
-    Sale*s=new Sale;
-    s->saleId=sId;
-    s->employee=searchbyId(eroot,eId);
-    s->customer=searchcus(croot,cId);
-    s->amount=amount;
-    int i=0;
-    while(date[i]!=0){
-        s->date[i]=date[i];
-        i++;
-    }
-    s->date[i]=0;
-    s->left=NULL;
-    s->right=NULL;
+    cin.getline(s->date,20);
+    s->employee=searchbyId(eroot,empId);
+    s->customer=searchcus(croot,cusId);
     sroot=insertSale(sroot,s);
     cout<<"Sale added successfully"<<endl;
 }
 void empReport(Sale*root,int empId,int&count,float&total){
-    if(root==NULL){
+    if(root==NULL){ 
         return;
     }
     empReport(root->left,empId,count,total);
