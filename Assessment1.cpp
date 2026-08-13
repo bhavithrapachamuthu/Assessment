@@ -196,20 +196,24 @@ void addSale(Sale*&sroot,Employee*eroot,Customer*croot){
     cin.getline(s->date,20);
     s->employee=searchbyId(eroot,empId);
     s->customer=searchcus(croot,cusId);
+    s->left=NULL;
+    s->right=NULL;
     sroot=insertSale(sroot,s);
     cout<<"Sale added successfully"<<endl;
 }
+//Generates sales report for specific emp
 void empReport(Sale*root,int empId,int&count,float&total){
     if(root==NULL){ 
         return;
     }
     empReport(root->left,empId,count,total);
-    if(root->employee!=NULL && root->employee->empId==empId){
-    cout<<"Customer ID: "<<root->customer->cusId<<endl;
-    cout<<"Customer Name: "<<root->customer->cusName<<endl;
-    cout<<"Sales Amount: "<<root->amount<<endl;
-    count++;
-    total=total+root->amount;
+    if(root->employee!=NULL && root->customer!=NULL && root->employee->empId==empId){
+        cout<<"Sale Id: "<<root->saleId<<endl;
+        cout<<"Customer ID: "<<root->customer->cusId<<endl;
+        cout<<"Customer Name: "<<root->customer->cusName<<endl;
+        cout<<"Sales Amount: "<<root->amount<<endl;
+        count++;
+        total=total+root->amount;
     }
     empReport(root->right,empId,count,total);
 } 
@@ -226,6 +230,7 @@ void cusReport(Sale*root,int empId,int cusId,int&count,float&amount){
  }
 cusReport(root->right,empId,cusId,count,amount);
 }
+//Emp wise cus grouping report
 void cusgrouping(Customer*root,Sale*sroot,int empId){
     if(root==NULL){
         return;
@@ -240,27 +245,6 @@ void cusgrouping(Customer*root,Sale*sroot,int empId){
         cout<<"Total Amount: "<<amount<<endl;
     }
     cusgrouping(root->right,sroot,empId);
-}
-void summary(Employee*eroot,Customer*croot,Sale*sroot,int empId){
-    if(eroot==NULL){
-        return;
-    }
-    summary(eroot->left,croot,sroot,empId);
-    if(eroot->empId==empId){
-    cout<<"\n---Employee Detials---"<<endl;
-    cout<<"Employee ID: "<<eroot->empId<<endl;
-    cout<<"Employee Name: "<<eroot->empName<<endl;
-    cout<<"Salary: "<<eroot->salary<<endl;
-    int count=0;
-    float total=0;
-    cout<<"\n---Sale Summary---"<<endl;
-    empReport(sroot,eroot->empId,count,total);
-    cout<<"No.of Sales: "<<count<<endl;
-    cout<<"Total Sale amount: "<<total<<endl;
-    cout<<"\n---Customer wise summary---"<<endl;
-    cusgrouping(croot,sroot,eroot->empId);
-    }
-    summary(eroot->right,croot,sroot,empId);
 }
 Employee*searchbyName(Employee*root,char name[]){
     if(root==NULL){
@@ -344,11 +328,19 @@ void serializeSale(Sale*root,vector<char>&bytes){
     for(int i=0;i<sizeof(int);i++){
         bytes.push_back(p[i]);
     }
-    p=(char*)&root->employee->empId;
+    int empId=-1;
+    if(root->employee!=NULL){
+        empId=root->employee->empId;
+    }
+    p=(char*)&empId;
     for(int i=0;i<sizeof(int);i++){
         bytes.push_back(p[i]);
     }
-    p=(char*)&root->customer->cusId;
+    int cusId=-1;
+    if(root->customer!=NULL){
+        cusId=root->customer->cusId;
+    }
+    p=(char*)&cusId;
     for(int i=0;i<sizeof(int);i++){
         bytes.push_back(p[i]);
     }
@@ -414,7 +406,6 @@ Customer*deserializeCus(vector<char>&bytes,int&index){
     for(int i=0;i<50;i++){
         c->cusName[i]=bytes[index++];
     }
-    c->cusName[50]=0;
     for(int i=0;i<100;i++){
         c->address[i]=bytes[index++];
     }
@@ -438,12 +429,22 @@ Sale*deserializeSale(vector<char>&bytes,int&index,Employee*eroot,Customer*croot)
     for(int i=0;i<sizeof(int);i++){
         p[i]=bytes[index++];
     }
+    if(empId==-1){
+        s->employee=NULL;
+    }
+    else{
     s->employee=searchbyId(eroot,empId);
+    }
     p=(char*)&cusId;
     for(int i=0;i<sizeof(int);i++){
         p[i]=bytes[index++];
     }
+    if(cusId==-1){
+        s->customer=NULL;
+    }
+    else{
     s->customer=searchcus(croot,cusId);
+    }
     float amount;
     p=(char*)&amount;
     for(int i=0;i<sizeof(float);i++){
@@ -482,7 +483,7 @@ Employee*deleteEmp(Employee*root,int id){
     if(id<root->empId){
         root->left=deleteEmp(root->left,id);
     }
-    if(id>root->empId){
+    else if(id>root->empId){
         root->right=deleteEmp(root->right,id);
     }
     else{
@@ -505,9 +506,15 @@ Employee*deleteEmp(Employee*root,int id){
         }
         //2 child
         Employee*temp=root->right;
-        while(root->right!=NULL){
-            temp=temp->right;
+        while(temp->left!=NULL){
+            temp=temp->left;
         }
+        root->empId=temp->empId;
+        for(int i=0;i<50;i++){
+            root->empName[i]=temp->empName[i];
+        }
+        root->salary=temp->salary;
+        root->right=deleteEmp(root->right,temp->empId);
     }
     return root;
 }
@@ -518,7 +525,7 @@ Customer*deleteCus(Customer*root,int id){
     if(id<root->cusId){
         root->left=deleteCus(root->left,id);
     }
-    if(id>root->cusId){
+    else if(id>root->cusId){
         root->right=deleteCus(root->right,id);
     }
     else{
@@ -541,9 +548,17 @@ Customer*deleteCus(Customer*root,int id){
         }
         //2 child
         Customer*temp=root->right;
-        while(root->right!=NULL){
-            temp=temp->right;
+        while(temp->left!=NULL){
+            temp=temp->left;
         }
+        root->cusId=temp->cusId;
+        for(int i=0;i<50;i++){
+            root->cusName[i]=temp->cusName[i];
+        }
+        for(int i=0;i<100;i++){
+            root->address[i]=temp->address[i];
+        }
+        root->right=deleteCus(root->right,temp->cusId);
     }
     return root;
 }
@@ -554,7 +569,7 @@ Sale*deleteSale(Sale*root,int id){
     if(id<root->saleId){
         root->left=deleteSale(root->left,id);
     }
-    if(id>root->saleId){
+    else if(id>root->saleId){
         root->right=deleteSale(root->right,id);
     }
     else{
@@ -577,9 +592,17 @@ Sale*deleteSale(Sale*root,int id){
         }
         //2 child
         Sale*temp=root->right;
-        while(root->right!=NULL){
-            temp=temp->right;
+        while(temp->left!=NULL){
+            temp=temp->left;
         }
+        root->saleId=temp->saleId;
+        root->employee=temp->employee;
+        root->customer=temp->customer;
+        root->amount=temp->amount;
+        for(int i=0;i<20;i++){
+            root->date[i]=temp->date[i];
+        }
+        root->right=deleteSale(root->right,temp->saleId);
     }
     return root;
 }
@@ -630,7 +653,19 @@ int main(){
         cin.getline(empName,50);
         Employee*e=searchbyName(eroot,empName);
         if(e!=NULL){
-            summary(eroot,croot,sroot,e->empId);
+            cout<<"----Employee report----"<<endl;
+            cout<<"Employee Id: "<<e->empId<<endl;
+            cout<<"Employee Name: "<<e->empName<<endl;
+            cout<<"Salary: "<<e->salary<<endl;
+            cout<<"\n----Sales Detials----"<<endl;
+            int count=0;
+            float total=0;
+            empReport(sroot,e->empId,count,total);
+            cout<<"\n----Summary report----"<<endl;
+            cout<<"Total sales count: "<<count<<endl;
+            cout<<"Totat sales amount: "<<total<<endl;
+            cout<<"\n----Customer wise summary----"<<endl;
+            cusgrouping(croot,sroot,e->empId);
         }
         else{
             cout<<"Employee not Found"<<endl;
@@ -651,28 +686,29 @@ int main(){
         cout<<"Deletion cancelled"<<endl;
     }
     else if(searchbyId(eroot,id)==NULL){
-        cout<<"Employee not Found"<<endl;
+        cout<<"Employee not found"<<endl;
     }
     else{
         eroot=deleteEmp(eroot,id);
-        cout<<"Employee deleted successfully"<<endl;
+        cout<<"Employee Deleted successfully"<<endl;
     }
     cout<<"Enter Customer Id to delete or(0 to cancel): ";
     cin>>id;
     while(cin.fail()){
-        cout<<"Enter only numbers: ";
-        cin.clear();
-        cin.ignore(1000,'\n');
+    cout<<"Enter only numbers: ";
+    cin.clear();
+    cin.ignore(1000,'\n');
+    cin>>id;
     }
     if(id==0){
-        cout<<"Deletion cancelled"<<endl;
+        cout<<"Deletion Cancelled"<<endl;
     }
     else if(searchcus(croot,id)==NULL){
-        cout<<"Customer not Found"<<endl;
+        cout<<"Customer not found"<<endl;
     }
     else{
         croot=deleteCus(croot,id);
-        cout<<"Customer Deleted successfully"<<endl;
+        cout<<"Customer Deleted Successfully"<<endl;
     }
     cout<<"Enter Sale Id to delete or(0 to cancel): ";
     cin>>id;
@@ -680,16 +716,17 @@ int main(){
         cout<<"Enter only numbers: ";
         cin.clear();
         cin.ignore(1000,'\n');
+        cin>>id;
     }
     if(id==0){
         cout<<"Deletion cancelled"<<endl;
     }
     else if(searchsale(sroot,id)==NULL){
-        cout<<"Sale not Found"<<endl;
+        cout<<"Sale not found"<<endl;
     }
     else{
         sroot=deleteSale(sroot,id);
-        cout<<"Sale Deleted successfully"<<endl;
+        cout<<"Sale Deleted Successfully"<<endl;
     }
     savefile(eroot,croot,sroot);
     return 0;
